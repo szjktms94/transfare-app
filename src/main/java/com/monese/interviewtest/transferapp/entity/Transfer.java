@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 @Entity
 public class Transfer {
 
-    //TODO drop autoincrement in db
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;

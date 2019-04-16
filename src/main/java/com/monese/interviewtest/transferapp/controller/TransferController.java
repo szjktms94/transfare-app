@@ -12,28 +12,28 @@ import org.springframework.web.bind.annotation.*;
 public class TransferController {
 
     @Autowired
-    TransferService transactionService;
+    TransferService transferService;
 
     @PostMapping(value = "/createAccount")
     public String createAccount(@RequestBody Account account){
-        transactionService.createAccount(account);
+        transferService.createAccount(account);
         return "saved";
     }
 
-    @PostMapping(value = "/transaction")
+    @PostMapping(value = "/transfer")
     public String saveTransaction(@RequestBody Transfer transactionHistory){
-        return transactionService.transferMoney(transactionHistory);
+        return transferService.transferMoney(transactionHistory);
     }
 
     @RequestMapping(value = "/getStatement",  method=RequestMethod.GET,
             produces= MediaType.APPLICATION_JSON_VALUE)
     public  @ResponseBody
     Statement getStatement(Integer accountId){
-        return transactionService.getStatement(accountId);
+        return transferService.getStatement(accountId);
     }
 
     @GetMapping(value = "/getBalance")
     public double getBalance(Integer accountId){
-        return transactionService.getBalance(accountId);
+        return transferService.getBalance(accountId);
     }
 }
