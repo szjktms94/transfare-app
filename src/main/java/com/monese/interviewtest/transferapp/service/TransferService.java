@@ -1,32 +1,34 @@
 package com.monese.interviewtest.transferapp.service;
 
 import com.monese.interviewtest.transferapp.entity.Account;
-import com.monese.interviewtest.transferapp.entity.Statment;
-import com.monese.interviewtest.transferapp.entity.TransactionHistory;
+import com.monese.interviewtest.transferapp.entity.Statement;
+import com.monese.interviewtest.transferapp.entity.Transfer;
 import com.monese.interviewtest.transferapp.repository.AccountRepository;
-import com.monese.interviewtest.transferapp.repository.TransactionHistoryRepository;
+import com.monese.interviewtest.transferapp.repository.TransferRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
-public class TransactionService {
+public class TransferService {
 
     @Autowired
     AccountRepository accountRepository;
 
     @Autowired
-    TransactionHistoryRepository transactionRepository;
+    TransferRepository transactionRepository;
 
     public void createAccount(Account account) {
         accountRepository.save(account);
     }
 
-    //top upot readme
-    public String saveTransaction(TransactionHistory transactionHistory) {
+    public String transferMoney(Transfer transactionHistory) {
         double sourceAccountBalance = this.getBalance(transactionHistory.getSourceAccountId());
         if((sourceAccountBalance - transactionHistory.getAmount()) >= 0) {
             transactionHistory.setTransactionTs(LocalDateTime.now());
@@ -34,15 +36,14 @@ public class TransactionService {
             return "Success";
         }
         return "User does not have enough money";
-
     }
 
     public double getBalance(int accountId) {
         double currentBalance = 0;
 
-        Iterable<TransactionHistory> transactionList = transactionRepository.findAll();
+        Iterable<Transfer> transferList = transactionRepository.findAll();
 
-        for (TransactionHistory t : transactionList) {
+        for (Transfer t : transferList) {
             if (t.getSourceAccountId() == accountId || t.getTargetAccountId() == accountId) {
                 if(t.getSourceAccountId() == accountId) {
                     currentBalance = currentBalance - t.getAmount();
@@ -54,21 +55,15 @@ public class TransactionService {
        return currentBalance;
     }
 
-    public Statment getStatement(int accountId) {
-        Iterable<TransactionHistory> allTransactions = transactionRepository.findAll();
-        List accountTransactionList = new ArrayList<TransactionHistory>();
+    @Transactional(readOnly = true)
+    public Statement getStatement(int accountId) {
+        Stream<Transfer> transferStream = transactionRepository.findTransactionHistoriesByAccountId(accountId);
+        List<Transfer> transferList = transferStream.collect(Collectors.toList());
 
-        Statment statment = new Statment();
-        statment.setCurrentBalance(this.getBalance(accountId));
+        Statement accountStatement = new Statement();
+        accountStatement.setCurrentBalance(this.getBalance(accountId));
+        accountStatement.setTransferList(transferList);
 
-        //use filted or any other solution
-        for(TransactionHistory t : allTransactions) {
-            if(t.getSourceAccountId() == accountId || t.getTargetAccountId() == accountId) {
-                accountTransactionList.add(t);
-            }
-        }
-        statment.setListOfTransactions(accountTransactionList);
-
-        return statment;
+        return accountStatement;
     }
 }

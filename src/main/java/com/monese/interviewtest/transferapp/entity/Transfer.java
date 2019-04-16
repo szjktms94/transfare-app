@@ -7,7 +7,7 @@ import javax.persistence.Id;
 import java.time.LocalDateTime;
 
 @Entity
-public class TransactionHistory {
+public class Transfer {
 
     //TODO drop autoincrement in db
     @Id
