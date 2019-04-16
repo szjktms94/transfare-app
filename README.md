@@ -12,7 +12,6 @@ To call the proper end points I made postman collection with examples and its al
 My test location src/test/java/com.monese.interviewtest.transferapp.TransferE2ETests
 My solution use HTTP calls to call the proper function so it will work only when the server is running.
 My test transfer money from the source account to the target account and after the test it will be sent back to the source to avoid falling test in case of the next run.
-* [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
 
 
 
