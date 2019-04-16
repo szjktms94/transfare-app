@@ -22,48 +22,53 @@ public class TransferService {
     AccountRepository accountRepository;
 
     @Autowired
-    TransferRepository transactionRepository;
+    TransferRepository transferRepository;
 
     public void createAccount(Account account) {
         accountRepository.save(account);
     }
 
-    public String transferMoney(Transfer transactionHistory) {
-        double sourceAccountBalance = this.getBalance(transactionHistory.getSourceAccountId());
-        if((sourceAccountBalance - transactionHistory.getAmount()) >= 0) {
-            transactionHistory.setTransactionTs(LocalDateTime.now());
-            transactionRepository.save(transactionHistory);
+    @Transactional()
+    public String transferMoney(Transfer transfer) {
+        double sourceAccountBalance = this.getBalance(transfer.getSourceAccountId());
+        if((sourceAccountBalance - transfer.getAmount()) >= 0) {
+            transfer.setTransactionTs(LocalDateTime.now());
+            transferRepository.save(transfer);
             return "Success";
         }
         return "User does not have enough money";
     }
 
+    @Transactional(readOnly = true)
     public double getBalance(int accountId) {
+        List<Transfer> transferList = getTransfers(accountId);
+
         double currentBalance = 0;
 
-        Iterable<Transfer> transferList = transactionRepository.findAll();
-
         for (Transfer t : transferList) {
-            if (t.getSourceAccountId() == accountId || t.getTargetAccountId() == accountId) {
                 if(t.getSourceAccountId() == accountId) {
                     currentBalance = currentBalance - t.getAmount();
                 } else {
-                    currentBalance = currentBalance + t.getAmount();
+                currentBalance = currentBalance + t.getAmount();
                 }
-            }
         }
+
        return currentBalance;
     }
 
     @Transactional(readOnly = true)
     public Statement getStatement(int accountId) {
-        Stream<Transfer> transferStream = transactionRepository.findTransactionHistoriesByAccountId(accountId);
-        List<Transfer> transferList = transferStream.collect(Collectors.toList());
+        List<Transfer> transferList = getTransfers(accountId);
 
         Statement accountStatement = new Statement();
         accountStatement.setCurrentBalance(this.getBalance(accountId));
         accountStatement.setTransferList(transferList);
 
         return accountStatement;
+    }
+
+    private List<Transfer> getTransfers(int accountId) {
+        Stream<Transfer> transferStream = transferRepository.findTransfersByAccountId(accountId);
+        return transferStream.collect(Collectors.toList());
     }
 }

@@ -10,5 +10,6 @@ import java.util.stream.Stream;
 public interface TransferRepository extends CrudRepository<Transfer, Integer> {
 
     @Query("select t from Transfer t where t.sourceAccountId = :sourceAccountId OR t.targetAccountId = :sourceAccountId order by t.transactionTs desc")
-    Stream<Transfer> findTransactionHistoriesByAccountId(@Param("sourceAccountId") Integer accountId);
+    Stream<Transfer> findTransfersByAccountId(@Param("sourceAccountId") Integer accountId);
+
 }
